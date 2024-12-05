@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/ride_requests_model.dart';
+import '../map_screen/map_screen.dart';
 
 class RideRequestsScreen extends StatelessWidget {
   final String driverId;
@@ -12,7 +13,7 @@ class RideRequestsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Available Ride Requests"),
+        title: const Text("Available Ride Requests"),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -21,10 +22,10 @@ class RideRequestsScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("No ride requests available"));
+            return const Center(child: Text("No ride requests available"));
           }
 
           var rideRequests = snapshot.data!.docs
@@ -45,7 +46,7 @@ class RideRequestsScreen extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: Icon(Icons.check, color: Colors.green),
+                        icon: const Icon(Icons.check, color: Colors.green),
                         onPressed: () async {
                           await FirebaseFirestore.instance
                               .collection('rideRequests')
@@ -54,10 +55,22 @@ class RideRequestsScreen extends StatelessWidget {
                             'status': 'confirmed',
                             'driverId': driverId,
                           });
+
+                          // Navigate to Map Screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MapScreen(
+                                pickup: rideRequest.pickup.toString(),
+                                destination: rideRequest.destination.toString(),
+                                requestId: rideRequest.requestId,
+                              ),
+                            ),
+                          );
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.close, color: Colors.red),
+                        icon: const Icon(Icons.close, color: Colors.red),
                         onPressed: () async {
                           await FirebaseFirestore.instance
                               .collection('rideRequests')

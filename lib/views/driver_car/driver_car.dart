@@ -58,13 +58,13 @@ class _DriverCarScreenState extends State<DriverCarScreen> {
                   selectedCar = 'Premium SUV';
                 }),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               AuthButton(
                 onTap: () {
                   if (selectedCar != null) {
                     Provider.of<SignupProvider>(context, listen: false).car =
                         selectedCar;
-                    push(context, DriverDetailsScreen());
+                    push(context, const DriverDetailsScreen());
                   } else {
                     showSnackbar(
                         'Please select a Car type', Colors.red, context);

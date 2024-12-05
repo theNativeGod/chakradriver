@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../models/ride_requests_model.dart';
 
-class RideProvider with ChangeNotifier {
+class RideRequestsProvider with ChangeNotifier {
   List<RideRequest> _rideRequests = [];
 
   List<RideRequest> get rideRequests => _rideRequests;

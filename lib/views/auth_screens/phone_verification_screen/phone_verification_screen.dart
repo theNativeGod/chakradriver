@@ -1,10 +1,14 @@
 import 'dart:async';
 
+import 'package:chakracabsrider/models/driver_model.dart';
+import 'package:chakracabsrider/views/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:new_pinput/new_pinput.dart';
 
-import '../../ride_requests_screen/ride_requests_screen.dart';
+import '../../../view_models/profile_provider.dart';
 import '../../widgets/export.dart';
 
 class PhoneVerifyScreen extends StatefulWidget {
@@ -59,7 +63,7 @@ class _PhoneVerifyScreenState extends State<PhoneVerifyScreen> {
 
     if (otp.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please enter the OTP")),
+        const SnackBar(content: Text("Please enter the OTP")),
       );
       return;
     }
@@ -72,17 +76,33 @@ class _PhoneVerifyScreenState extends State<PhoneVerifyScreen> {
 
       await _auth.signInWithCredential(credential);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const RideRequestsScreen(
-            driverId: '74abd0a6-017e-45ae-986a-338ad6e1375a',
-          ),
-        ),
-      );
+      // Fetch driver details from Firestore
+      final driverSnapshot = await FirebaseFirestore.instance
+          .collection('drivers')
+          .where('fullPhoneNumber', isEqualTo: widget.phoneNumber)
+          .limit(1)
+          .get();
+
+      if (driverSnapshot.docs.isNotEmpty) {
+        final driverData = driverSnapshot.docs.first.data();
+        final driver = Driver.fromMap(driverSnapshot.docs.first.id, driverData);
+
+        // Update ProfileProvider
+        Provider.of<ProfileProvider>(context, listen: false).driver = driver;
+
+        // Navigate to the MainScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Driver details not found.")),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Invalid OTP. Please try again.")),
+        const SnackBar(content: Text("Invalid OTP. Please try again.")),
       );
     }
   }
@@ -94,10 +114,6 @@ class _PhoneVerifyScreenState extends State<PhoneVerifyScreen> {
           phoneNumber: widget.phoneNumber,
           verificationCompleted: (PhoneAuthCredential credential) async {
             await _auth.signInWithCredential(credential);
-            // Navigator.pushReplacement(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => const HomeScreen()),
-            // );
           },
           verificationFailed: (FirebaseAuthException e) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -110,14 +126,15 @@ class _PhoneVerifyScreenState extends State<PhoneVerifyScreen> {
             });
             startResendCountdown();
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("OTP code resent successfully.")),
+              const SnackBar(content: Text("OTP code resent successfully.")),
             );
           },
           codeAutoRetrievalTimeout: (String verificationId) {},
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to resend code. Please try again.")),
+          const SnackBar(
+              content: Text("Failed to resend code. Please try again.")),
         );
       }
     }
@@ -149,7 +166,7 @@ class _PhoneVerifyScreenState extends State<PhoneVerifyScreen> {
                       SizedBox(height: height * .06),
                       const AuthPurposeText(text: 'Enter Your OTP code'),
                       const SizedBox(height: 24),
-                      Otpinput(controller: _otpController),
+                      OtpInput(controller: _otpController),
                       SizedBox(height: height * .07),
                       AuthButton(
                         onTap: verifyOtp,
@@ -184,11 +201,6 @@ class _PhoneVerifyScreenState extends State<PhoneVerifyScreen> {
                                     .textTheme
                                     .bodySmall!
                                     .copyWith(color: Colors.grey),
-                              ),
-                            if (_isResendAllowed)
-                              const Icon(
-                                Icons.play_arrow,
-                                size: 12,
                               ),
                           ],
                         ),
@@ -226,10 +238,10 @@ class _PhoneVerifyScreenState extends State<PhoneVerifyScreen> {
   }
 }
 
-class Otpinput extends StatelessWidget {
+class OtpInput extends StatelessWidget {
   final TextEditingController controller;
 
-  const Otpinput({
+  const OtpInput({
     super.key,
     required this.controller,
   });

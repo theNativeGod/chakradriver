@@ -1,4 +1,4 @@
-package com.example.chakracabsrider
+package com.chakracabs.driver
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,5 +1,7 @@
 import 'package:chakracabsrider/view_models/bottom_sheet_model.dart';
+import 'package:chakracabsrider/view_models/current_ride_provider.dart';
 import 'package:chakracabsrider/view_models/location_view_model.dart';
+import 'package:chakracabsrider/view_models/profile_provider.dart';
 import 'package:chakracabsrider/view_models/ride_requests_provider.dart';
 import 'package:chakracabsrider/view_models/signup_provider.dart';
 import 'package:chakracabsrider/views/auth_screens/login_screen/login_screen.dart';
@@ -33,7 +35,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (ctx) => SignupProvider()),
         ChangeNotifierProvider(create: (ctx) => LocationViewModel()),
         ChangeNotifierProvider(create: (ctx) => BottomSheetModel()),
-        ChangeNotifierProvider(create: (ctx) => RideProvider()),
+        ChangeNotifierProvider(create: (ctx) => RideRequestsProvider()),
+        ChangeNotifierProvider(create: (ctx) => CurrentRideProvider()),
+        ChangeNotifierProvider(create: (ctx) => ProfileProvider()),
       ],
       child: MaterialApp(
         title: 'ChakraCabs Driver',
